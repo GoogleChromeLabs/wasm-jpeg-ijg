@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+        #myRange {
+          width: 50%; /* Width of the outside container */
+        }
+        div {
+          font-family: sans-serif;
+          font-size: 20px;
+        }
+    </style>
+  </head>
+  <body style="{ font-face: sans-serif; }">
+    <script src="jpgsquash.js"></script>
+    <script>
+      var wasm_loaded = false;
+      Module.onRuntimeInitialized = function() { wasm_loaded = true; }
+      function squash_jpg_blob(source, quality) {
+        if (!wasm_loaded) {
+          return undefined;
+        }
+        return Module.jpg_transcode(source, quality);
+      }
+    </script>
+
+    <input type="file" id="files" name="files[]"/>
+    <input type="range" min="1" max="100" value="5" step="1" id="myRange">
+    <div style="display:inline"><span>&nbsp;</span>Q:&nbsp;<span id="qual">5</span>&nbsp;==&nbsp;<span id="sizekb">0</span>&nbsp;kBytes
+    </div>
+
+    <div id="rightcontainer" style="margin-left: auto; margin-right: auto; position: relative; width:800px; height:800px;">
+      <div id="leftcontainer" style="border-right: 1px dotted white; width:800px; height:800px;"></div>
+      <div id="lefttext" style="position: absolute; color: white; padding:.2em .5em .2em .5em;"></div>
+      <div id="righttext" style="position: absolute; color: white; padding:.2em .5em .2em .5em;"></div>
+    </div>
+
+    <script>
+      // Check for the various File API support.
+      if (window.File && window.FileReader && window.FileList && window.Blob) {
+        // Great success! All the File APIs are supported.
+      } else {
+        alert('The File APIs are not fully supported in this browser.');
+      }
+      // image should be a Uint8Array of raw JPEG binary image data
+      function makeBlobUrl(image) {
+        var blob;
+
+        if (typeof (URL) !== 'undefined') {
+            blob = new Blob([image], {type: "image/jpeg"});
+            return URL.createObjectURL(blob);
+        }
+        else if (webkitURL) {
+            blob = new Blob([image.buffer], {type: "image/jpeg"});
+            return webkitURL.createObjectURL(blob);
+        }
+        else {
+            return null;
+        }
+      }
+      var fileAsArray = undefined;
+      function handleFileSelect(evt) {
+        var files = evt.target.files; // FileList object
+
+        // files is a FileList of File objects. grab the name.
+        if (files[0]) {
+          var f = files[0];
+          var reader = new FileReader();
+          // Closure to capture the file information.
+          reader.onload = (function(theFile) {
+            return function(e) {
+              var blob = makeBlobUrl(e.target.result);
+              set_blob(blob);
+              fileAsArray = e.target.result;
+              set_right_array(fileAsArray, "&rarr;&nbsp;Q: " + gQuality);
+            };
+          })(f);
+
+          // Read in the image file as an array buffer.
+          reader.readAsArrayBuffer(f);
+        }
+      }
+      document.getElementById('files').addEventListener('change', handleFileSelect, false);
+      var qual_text = document.getElementById('qual');
+      function handleQualityChange(evt) {
+        qual.innerHTML = evt.target.value;
+        set_jpeg_quality(evt.target.value);
+      }
+      document.getElementById('myRange').addEventListener('change', handleQualityChange, false);
+    </script>
+    <script type="text/javascript" src="splitimage.js"></script>
+  </body>
+</html>
