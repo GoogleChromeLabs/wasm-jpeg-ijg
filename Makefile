@@ -33,7 +33,7 @@ IJG_SRCS =\
         $(IJG_DIR)/jquant2.c $(IJG_DIR)/jutils.c $(IJG_DIR)/jmemmgr.c \
         $(IJG_DIR)/jmemansi.c
 
-SRCS=$(IJG_SRCS) jpgtranscode.c
+SRCS=$(IJG_SRCS) jpgglue.c jpgtranscode.c
 
 all: jpgsquash.js
 
